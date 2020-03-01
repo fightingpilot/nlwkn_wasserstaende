@@ -69,5 +69,5 @@ if __name__ == '__main__':
     else:
         argv.append(out_def)
 
-    print(argv)
-    #main(argv)
+    #print(argv)
+    main(argv)
