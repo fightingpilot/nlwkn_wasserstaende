@@ -1,4 +1,4 @@
-import json, time, sys, argparse
+import json, time, argparse
 import urllib.request
 
 def main(argv):
@@ -7,6 +7,7 @@ def main(argv):
     update_interval = argv[2]
     url = argv[3]
     out = argv[4]
+    ov = argv[5]
 
     while True:
         websource = urllib.request.urlopen(url)
@@ -19,9 +20,14 @@ def main(argv):
                 "properties": stelle
             }
             data["features"].append(s)
-        with open('out', 'w') as gj:
-            json.dump(data, gj, indent=4)
-        print(data)
+
+        if ov:
+            with open(out, 'w') as gj:
+                json.dump(data, gj, indent=4)
+        else:
+            with open(out + time.strftime("%d%m%Y_%H%M%S", time.localtime()), 'w') as gj:
+                json.dump(data, gj, indent=4)
+
         time.sleep(update_interval)
 
 if __name__ == '__main__':
@@ -34,40 +40,25 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Read and store the NLWKN data into GeoJson')
 
-    parser.add_argument("--lat", help="Name of the field to get the latitude from.\nIf not given default value will be used (" + lat_def + ")")
-    parser.add_argument("--lon", help="Name of the field to get the longitude from.\nIf not given default value will be used (" + lon_def + ")")
-    parser.add_argument("-i", "--interval", type=int, help="The interval of the data-request in seconds.\nIf not given default value will be used (" + str(interval_def) + ")")
-    parser.add_argument("-u", "--url", help="The URL for the request.\nIf not given default value will be used (" + url_def + ")")
-    parser.add_argument("-o", "--outfile", help="The name of the output-geojson.\nIf not given default value will be used (" + out_def + ")")
+    parser.add_argument("--lat", default=lat_def, help="Name of the field to get the latitude from.\nIf not given default value will be used (" + lat_def + ")")
+    parser.add_argument("--lon", default=lon_def, help="Name of the field to get the longitude from.\nIf not given default value will be used (" + lon_def + ")")
+    parser.add_argument("-i", "--interval", default=interval_def, type=int, help="The interval of the data-request in seconds.\nIf not given default value will be used (" + str(interval_def) + ")")
+    parser.add_argument("-u", "--url", default=url_def, help="The URL for the request.\nIf not given default value will be used (" + url_def + ")")
+    parser.add_argument("-o", "--outfile", default=out_def, help="The name of the output-geojson.\nIf not given default value will be used (" + out_def + ")")
+    parser.add_argument("--overwrite", default="True", choices=["True", "False"], help="Whether the existing geojson should be overwritten or not. Default is True")
 
     args = parser.parse_args()
 
     argv = []
 
-    if args.lat:
-        argv.append(args.lat)
-    else:
-        argv.append(lat_def)
+    argv.append(args.lat)
+    argv.append(args.lon)
+    argv.append(args.interval)
+    argv.append(args.url)
+    argv.append(args.outfile)
+    argv.append(eval(args.overwrite))
 
-    if args.lon:
-        argv.append(args.lon)
-    else:
-        argv.append(lon_def)
-
-    if args.interval:
-        argv.append(args.interval)
-    else:
-        argv.append(interval_def)
-
-    if args.url:
-        argv.append(args.url)
-    else:
-        argv.append(url_def)
-
-    if args.outfile:
-        argv.append(args.out)
-    else:
-        argv.append(out_def)
-
+    #print(args)
     #print(argv)
+    #print(time.strftime("%d%m%Y_%H%M%S", time.localtime()))
     main(argv)
